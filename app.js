@@ -2,6 +2,7 @@ const STORAGE_KEY = "timesheet_v1";
 
 const jobForm = document.getElementById("jobForm");
 const jobNameInput = document.getElementById("jobName");
+const jobRateInput = document.getElementById("jobRate");
 const jobsEl = document.getElementById("jobs");
 const sessionsEl = document.getElementById("sessions");
 const weekStartInput = document.getElementById("weekStart");
@@ -10,25 +11,39 @@ const installBtn = document.getElementById("installBtn");
 
 const jobTemplate = document.getElementById("jobTemplate");
 const sessionTemplate = document.getElementById("sessionTemplate");
+const sessionDialog = document.getElementById("sessionDialog");
+const sessionForm = document.getElementById("sessionForm");
+const sessionJobSelect = document.getElementById("sessionJob");
+const sessionStartInput = document.getElementById("sessionStart");
+const sessionEndInput = document.getElementById("sessionEnd");
+const cancelSessionBtn = document.getElementById("cancelSession");
+const runningWidget = document.getElementById("runningWidget");
+const runningDetails = document.getElementById("runningDetails");
+const runningStop = document.getElementById("runningStop");
 
 let deferredInstallPrompt = null;
+let editSessionId = null;
 
 const state = loadState();
 
 initWeekStart();
 render();
 registerServiceWorker();
+setInterval(renderRunningWidget, 30000);
 
 jobForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const name = jobNameInput.value.trim();
   if (!name) return;
+  const rate = Number.parseFloat(jobRateInput.value);
   state.jobs.push({
     id: crypto.randomUUID(),
     name,
+    rate: Number.isFinite(rate) ? rate : 0,
     activeSessionId: null,
   });
   jobNameInput.value = "";
+  jobRateInput.value = "";
   saveState();
   render();
 });
@@ -58,6 +73,53 @@ installBtn.addEventListener("click", async () => {
   installBtn.hidden = true;
 });
 
+cancelSessionBtn.addEventListener("click", () => {
+  sessionDialog.close();
+  editSessionId = null;
+});
+
+sessionForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!editSessionId) return;
+  const session = state.sessions.find((item) => item.id === editSessionId);
+  if (!session) return;
+
+  const startValue = new Date(sessionStartInput.value);
+  const endValue = new Date(sessionEndInput.value);
+
+  if (Number.isNaN(startValue.valueOf()) || Number.isNaN(endValue.valueOf())) {
+    alert("Please enter valid start and end times.");
+    return;
+  }
+
+  if (endValue <= startValue) {
+    alert("End time must be after start time.");
+    return;
+  }
+
+  const jobId = sessionJobSelect.value;
+  session.jobId = jobId;
+  session.start = startValue.toISOString();
+  session.end = endValue.toISOString();
+
+  const job = state.jobs.find((item) => item.id === jobId);
+  if (job) {
+    job.activeSessionId = job.activeSessionId === session.id ? null : job.activeSessionId;
+  }
+
+  saveState();
+  sessionDialog.close();
+  editSessionId = null;
+  render();
+});
+
+runningStop.addEventListener("click", () => {
+  const activeJob = state.jobs.find((job) => job.activeSessionId);
+  if (activeJob) {
+    togglePunch(activeJob.id);
+  }
+});
+
 function initWeekStart() {
   if (!state.weekStart) {
     state.weekStart = startOfWeek(new Date()).toISOString().slice(0, 10);
@@ -69,6 +131,7 @@ function initWeekStart() {
 function render() {
   renderJobs();
   renderSessions();
+  renderRunningWidget();
 }
 
 function renderJobs() {
@@ -88,6 +151,7 @@ function renderJobs() {
     const removeBtn = node.querySelector(".remove");
     const weekEl = node.querySelector(".job-week");
     const totalsEl = node.querySelector(".totals");
+    const jobBody = node.querySelector(".job-body");
 
     name.textContent = job.name;
     meta.textContent = job.activeSessionId ? "Currently punched in" : "Not on the clock";
@@ -95,9 +159,27 @@ function renderJobs() {
     punchBtn.classList.toggle("ghost", !!job.activeSessionId);
 
     const weeklyTotals = calcJobTotals(job.id, week.start, week.end);
+    const weeklyPay = weeklyTotals.totalHours * (job.rate || 0);
 
     weekEl.textContent = `Week ${formatDate(week.start)} - ${formatDate(week.end)}`;
-    totalsEl.textContent = `Weekly hours: ${formatHours(weeklyTotals.totalHours)} (Sessions: ${weeklyTotals.sessions})`;
+    totalsEl.textContent = `Weekly hours: ${formatHours(weeklyTotals.totalHours)} (Sessions: ${weeklyTotals.sessions}) • Earnings: $${formatMoney(weeklyPay)}`;
+
+    const rateRow = document.createElement("label");
+    rateRow.className = "inline";
+    rateRow.textContent = "Hourly rate";
+    const rateInput = document.createElement("input");
+    rateInput.type = "number";
+    rateInput.min = "0";
+    rateInput.step = "0.01";
+    rateInput.value = job.rate ?? 0;
+    rateInput.addEventListener("change", () => {
+      const nextRate = Number.parseFloat(rateInput.value);
+      job.rate = Number.isFinite(nextRate) ? nextRate : 0;
+      saveState();
+      render();
+    });
+    rateRow.appendChild(rateInput);
+    jobBody.appendChild(rateRow);
 
     punchBtn.addEventListener("click", () => togglePunch(job.id));
     removeBtn.addEventListener("click", () => removeJob(job.id));
@@ -122,6 +204,7 @@ function renderSessions() {
     const title = node.querySelector(".session-title");
     const time = node.querySelector(".session-time");
     const duration = node.querySelector(".session-duration");
+    const editBtn = node.querySelector(".edit-session");
 
     const job = state.jobs.find((item) => item.id === session.jobId);
     title.textContent = job ? job.name : "Unknown job";
@@ -129,6 +212,8 @@ function renderSessions() {
 
     const hours = session.end ? durationHours(session.start, session.end) : 0;
     duration.textContent = session.end ? `${formatHours(hours)} hours` : "Running";
+
+    editBtn.addEventListener("click", () => openSessionEditor(session.id));
 
     sessionsEl.appendChild(node);
   });
@@ -176,15 +261,18 @@ function removeJob(jobId) {
 
 function buildWeeklyExport() {
   const week = getWeekRange();
-  const headers = ["Job", "Week Start", "Week End", "Sessions", "Hours"];
+  const headers = ["Job", "Week Start", "Week End", "Sessions", "Hours", "Rate", "Earnings"];
   const rows = state.jobs.map((job) => {
     const totals = calcJobTotals(job.id, week.start, week.end);
+    const earnings = totals.totalHours * (job.rate || 0);
     return [
       job.name,
       formatDate(week.start),
       formatDate(week.end),
       totals.sessions.toString(),
       totals.totalHours.toFixed(2),
+      (job.rate || 0).toFixed(2),
+      earnings.toFixed(2),
     ];
   });
 
@@ -215,6 +303,10 @@ function durationHours(start, end) {
 }
 
 function formatHours(value) {
+  return value.toFixed(2);
+}
+
+function formatMoney(value) {
   return value.toFixed(2);
 }
 
@@ -272,7 +364,10 @@ function loadState() {
   try {
     const data = JSON.parse(raw);
     return {
-      jobs: data.jobs || [],
+      jobs: (data.jobs || []).map((job) => ({
+        ...job,
+        rate: job.rate ?? 0,
+      })),
       sessions: data.sessions || [],
       weekStart: data.weekStart || null,
     };
@@ -290,4 +385,50 @@ function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
+}
+
+function openSessionEditor(sessionId) {
+  const session = state.sessions.find((item) => item.id === sessionId);
+  if (!session) return;
+
+  editSessionId = sessionId;
+  sessionJobSelect.innerHTML = "";
+  state.jobs.forEach((job) => {
+    const option = document.createElement("option");
+    option.value = job.id;
+    option.textContent = job.name;
+    sessionJobSelect.appendChild(option);
+  });
+
+  sessionJobSelect.value = session.jobId;
+  sessionStartInput.value = toInputValue(session.start);
+  sessionEndInput.value = session.end ? toInputValue(session.end) : toInputValue(new Date().toISOString());
+
+  sessionDialog.showModal();
+}
+
+function toInputValue(value) {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function renderRunningWidget() {
+  const activeJobs = state.jobs.filter((job) => job.activeSessionId);
+  if (activeJobs.length === 0) {
+    runningWidget.hidden = true;
+    return;
+  }
+
+  const summaries = activeJobs
+    .map((job) => {
+      const session = state.sessions.find((item) => item.id === job.activeSessionId);
+      if (!session) return null;
+      const hours = durationHours(session.start, new Date().toISOString());
+      return `${job.name}: ${formatHours(hours)} hrs`;
+    })
+    .filter(Boolean);
+
+  runningDetails.textContent = summaries.join(" • ");
+  runningWidget.hidden = false;
 }

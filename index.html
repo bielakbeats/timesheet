@@ -27,6 +27,7 @@
         <h2>Add Job</h2>
         <form id="jobForm" class="row">
           <input id="jobName" type="text" placeholder="Job name" required />
+          <input id="jobRate" type="number" min="0" step="0.01" placeholder="Hourly rate ($)" />
           <button type="submit">Add</button>
         </form>
       </section>
@@ -86,9 +87,44 @@
           <p class="session-title"></p>
           <p class="session-time"></p>
         </div>
-        <p class="session-duration"></p>
+        <div class="session-actions">
+          <p class="session-duration"></p>
+          <button class="ghost small edit-session">Edit</button>
+        </div>
       </article>
     </template>
+
+    <dialog id="sessionDialog" class="dialog">
+      <form id="sessionForm" method="dialog" class="dialog-body">
+        <h3>Edit Session</h3>
+        <label>
+          Job
+          <select id="sessionJob"></select>
+        </label>
+        <label>
+          Start
+          <input id="sessionStart" type="datetime-local" required />
+        </label>
+        <label>
+          End
+          <input id="sessionEnd" type="datetime-local" required />
+        </label>
+        <div class="dialog-actions">
+          <button type="button" class="ghost" id="cancelSession">Cancel</button>
+          <button type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="runningWidget" class="running-widget" hidden>
+      <div class="running-inner">
+        <div>
+          <p class="running-title">On the clock</p>
+          <p id="runningDetails" class="running-details"></p>
+        </div>
+        <button id="runningStop" class="danger">Punch Out</button>
+      </div>
+    </div>
 
     <script src="app.js" defer></script>
   </body>
