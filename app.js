@@ -6,7 +6,6 @@ const jobRateInput = document.getElementById("jobRate");
 const jobsEl = document.getElementById("jobs");
 const sessionsEl = document.getElementById("sessions");
 const weekStartInput = document.getElementById("weekStart");
-const exportBtn = document.getElementById("exportBtn");
 const installBtn = document.getElementById("installBtn");
 
 const jobTemplate = document.getElementById("jobTemplate");
@@ -51,12 +50,6 @@ jobForm.addEventListener("submit", (event) => {
 weekStartInput.addEventListener("change", () => {
   saveState({ weekStart: weekStartInput.value });
   render();
-});
-
-exportBtn.addEventListener("click", () => {
-  const csv = buildWeeklyExport();
-  const fileName = `timesheet_${weekStartInput.value || "week"}.csv`;
-  downloadFile(csv, fileName);
 });
 
 window.addEventListener("beforeinstallprompt", (event) => {
@@ -148,6 +141,7 @@ function renderJobs() {
     const name = node.querySelector(".job-name");
     const meta = node.querySelector(".job-meta");
     const punchBtn = node.querySelector(".punch");
+    const exportBtn = node.querySelector(".export");
     const removeBtn = node.querySelector(".remove");
     const weekEl = node.querySelector(".job-week");
     const totalsEl = node.querySelector(".totals");
@@ -182,6 +176,7 @@ function renderJobs() {
     jobBody.appendChild(rateRow);
 
     punchBtn.addEventListener("click", () => togglePunch(job.id));
+    exportBtn.addEventListener("click", () => exportJobWeek(job.id));
     removeBtn.addEventListener("click", () => removeJob(job.id));
 
     jobsEl.appendChild(node);
@@ -259,28 +254,38 @@ function removeJob(jobId) {
   render();
 }
 
-function buildWeeklyExport() {
+function buildJobExport(jobId) {
   const week = getWeekRange();
+  const job = state.jobs.find((item) => item.id === jobId);
+  if (!job) return "";
+
   const headers = ["Job", "Week Start", "Week End", "Sessions", "Hours", "Rate", "Earnings"];
-  const rows = state.jobs.map((job) => {
-    const totals = calcJobTotals(job.id, week.start, week.end);
-    const earnings = totals.totalHours * (job.rate || 0);
-    return [
-      job.name,
-      formatDate(week.start),
-      formatDate(week.end),
-      totals.sessions.toString(),
-      totals.totalHours.toFixed(2),
-      (job.rate || 0).toFixed(2),
-      earnings.toFixed(2),
-    ];
-  });
+  const totals = calcJobTotals(job.id, week.start, week.end);
+  const earnings = totals.totalHours * (job.rate || 0);
+  const rows = [[
+    job.name,
+    formatDate(week.start),
+    formatDate(week.end),
+    totals.sessions.toString(),
+    totals.totalHours.toFixed(2),
+    (job.rate || 0).toFixed(2),
+    earnings.toFixed(2),
+  ]];
 
   const lines = [headers, ...rows].map((row) =>
     row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")
   );
 
   return lines.join("\n");
+}
+
+function exportJobWeek(jobId) {
+  const job = state.jobs.find((item) => item.id === jobId);
+  if (!job) return;
+  const csv = buildJobExport(jobId);
+  const safeName = job.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const fileName = `timesheet_${safeName || "job"}_${weekStartInput.value || "week"}.csv`;
+  downloadFile(csv, fileName);
 }
 
 function calcJobTotals(jobId, start, end) {
