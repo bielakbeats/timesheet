@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Time Sheet</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="icons/icon-192.svg" />
+    <link rel="apple-touch-icon" href="icons/icon-192.svg" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <p class="eyebrow">Time Sheet</p>
+          <h1>Punch in, punch out, export weekly hours</h1>
+          <p class="sub">Add jobs, track sessions, and export per-job weekly totals.</p>
+        </div>
+        <div class="header-actions">
+          <button id="installBtn" class="ghost" hidden>Install App</button>
+        </div>
+      </header>
+
+      <section class="panel">
+        <h2>Add Job</h2>
+        <form id="jobForm" class="row">
+          <input id="jobName" type="text" placeholder="Job name" required />
+          <button type="submit">Add</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="row space-between">
+          <h2>Jobs</h2>
+          <div class="row">
+            <label class="inline">
+              Week starting
+              <input id="weekStart" type="date" />
+            </label>
+            <button id="exportBtn" class="ghost">Export Week (CSV)</button>
+          </div>
+        </div>
+        <div id="jobs" class="jobs"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Recent Sessions</h2>
+        <div id="sessions" class="sessions"></div>
+      </section>
+
+      <section class="panel help">
+        <h2>Add to iOS Home Screen</h2>
+        <ol>
+          <li>Open this page in Safari.</li>
+          <li>Tap the Share icon.</li>
+          <li>Select “Add to Home Screen”.</li>
+          <li>Name it and tap Add.</li>
+        </ol>
+      </section>
+    </main>
+
+    <template id="jobTemplate">
+      <article class="job">
+        <div class="job-head">
+          <div>
+            <h3 class="job-name"></h3>
+            <p class="job-meta"></p>
+          </div>
+          <div class="job-actions">
+            <button class="punch"></button>
+            <button class="danger remove">Remove</button>
+          </div>
+        </div>
+        <div class="job-body">
+          <p class="job-week"></p>
+          <div class="totals"></div>
+        </div>
+      </article>
+    </template>
+
+    <template id="sessionTemplate">
+      <article class="session">
+        <div>
+          <p class="session-title"></p>
+          <p class="session-time"></p>
+        </div>
+        <p class="session-duration"></p>
+      </article>
+    </template>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
