@@ -36,10 +36,26 @@
         <div class="row space-between">
           <h2>Jobs</h2>
           <div class="row">
-            <label class="inline" id="weekStartWrap" hidden>
+            <label class="inline">
+              Range
+              <select id="rangeMode">
+                <option value="week">Week</option>
+                <option value="pay_period">Pay period</option>
+              </select>
+            </label>
+            <label class="inline" id="weekStartWrap">
               Week starting
               <input id="weekStart" type="date" />
             </label>
+            <label class="inline" id="payStartWrap" hidden>
+              Pay period start
+              <input id="payStart" type="date" />
+            </label>
+            <label class="inline" id="payLengthWrap" hidden>
+              Length (days)
+              <input id="payLength" type="number" min="1" step="1" />
+            </label>
+            <p id="payRangeLabel" class="sub" hidden></p>
           </div>
         </div>
         <div id="jobs" class="jobs"></div>

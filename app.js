@@ -5,8 +5,14 @@ const jobNameInput = document.getElementById("jobName");
 const jobRateInput = document.getElementById("jobRate");
 const jobsEl = document.getElementById("jobs");
 const sessionsEl = document.getElementById("sessions");
+const rangeModeSelect = document.getElementById("rangeMode");
 const weekStartInput = document.getElementById("weekStart");
+const payStartInput = document.getElementById("payStart");
+const payLengthInput = document.getElementById("payLength");
 const weekStartWrap = document.getElementById("weekStartWrap");
+const payStartWrap = document.getElementById("payStartWrap");
+const payLengthWrap = document.getElementById("payLengthWrap");
+const payRangeLabel = document.getElementById("payRangeLabel");
 const installBtn = document.getElementById("installBtn");
 
 const jobTemplate = document.getElementById("jobTemplate");
@@ -26,7 +32,7 @@ let editSessionId = null;
 
 const state = loadState();
 
-initWeekStart();
+initRangeSettings();
 render();
 registerServiceWorker();
 setInterval(renderRunningWidget, 1000);
@@ -41,9 +47,6 @@ jobForm.addEventListener("submit", (event) => {
     name,
     rate: Number.isFinite(rate) ? rate : 0,
     activeSessionId: null,
-    rangeMode: "pay_period",
-    payPeriodStart: new Date().toISOString().slice(0, 10),
-    payPeriodLength: 14,
   });
   jobNameInput.value = "";
   jobRateInput.value = "";
@@ -51,8 +54,25 @@ jobForm.addEventListener("submit", (event) => {
   render();
 });
 
+rangeModeSelect.addEventListener("change", () => {
+  saveState({ rangeMode: rangeModeSelect.value });
+  syncRangeUI();
+  render();
+});
+
 weekStartInput.addEventListener("change", () => {
   saveState({ weekStart: weekStartInput.value });
+  render();
+});
+
+payStartInput.addEventListener("change", () => {
+  saveState({ payPeriodStart: payStartInput.value });
+  render();
+});
+
+payLengthInput.addEventListener("change", () => {
+  const next = Number.parseInt(payLengthInput.value, 10);
+  saveState({ payPeriodLength: Number.isFinite(next) && next > 0 ? next : 14 });
   render();
 });
 
@@ -117,18 +137,40 @@ runningStop.addEventListener("click", () => {
   }
 });
 
-function initWeekStart() {
+function initRangeSettings() {
+  if (!state.rangeMode) {
+    state.rangeMode = "week";
+  }
   if (!state.weekStart) {
     state.weekStart = startOfWeek(new Date()).toISOString().slice(0, 10);
-    saveState();
   }
-  weekStartInput.value = state.weekStart;
+  if (!state.payPeriodStart) {
+    state.payPeriodStart = new Date().toISOString().slice(0, 10);
+  }
+  if (!state.payPeriodLength) {
+    state.payPeriodLength = 14;
+  }
+  saveState();
+  syncRangeUI();
 }
 
 function render() {
   renderJobs();
   renderSessions();
   renderRunningWidget();
+}
+
+function syncRangeUI() {
+  rangeModeSelect.value = state.rangeMode || "week";
+  weekStartInput.value = state.weekStart;
+  payStartInput.value = state.payPeriodStart;
+  payLengthInput.value = state.payPeriodLength;
+
+  const isPay = rangeModeSelect.value === "pay_period";
+  weekStartWrap.hidden = isPay;
+  payStartWrap.hidden = !isPay;
+  payLengthWrap.hidden = !isPay;
+  payRangeLabel.hidden = !isPay;
 }
 
 function renderJobs() {
@@ -138,7 +180,7 @@ function renderJobs() {
     return;
   }
 
-    const week = getRange(job);
+    const week = getRange();
 
   state.jobs.forEach((job) => {
     const node = jobTemplate.content.cloneNode(true);
@@ -160,7 +202,7 @@ function renderJobs() {
     const weeklyPay = weeklyTotals.totalHours * (job.rate || 0);
 
     weekEl.textContent = `${week.label} ${formatDate(week.start)} - ${formatDate(week.end)}`;
-    totalsEl.textContent = `Period hours: ${formatHours(weeklyTotals.totalHours)} (Sessions: ${weeklyTotals.sessions}) • Earnings: $${formatMoney(weeklyPay)}`;
+    totalsEl.textContent = `Weekly hours: ${formatHours(weeklyTotals.totalHours)} (Sessions: ${weeklyTotals.sessions}) • Earnings: $${formatMoney(weeklyPay)}`;
 
     const rateRow = document.createElement("label");
     rateRow.className = "inline";
@@ -178,57 +220,6 @@ function renderJobs() {
     });
     rateRow.appendChild(rateInput);
     jobBody.appendChild(rateRow);
-
-    const rangeRow = document.createElement("label");
-    rangeRow.className = "inline";
-    rangeRow.textContent = "Range (fixed)";
-    const rangeSelect = document.createElement("select");
-    rangeSelect.innerHTML = "<option value=\"pay_period\">Pay period</option>";
-    rangeSelect.value = "pay_period";
-    rangeSelect.addEventListener("change", () => {
-      job.rangeMode = "pay_period";
-      saveState();
-      render();
-    });
-    rangeRow.appendChild(rangeSelect);
-    jobBody.appendChild(rangeRow);
-
-    const payRow = document.createElement("label");
-    payRow.className = "inline";
-    payRow.textContent = "Pay period start (first day of a period)";
-    const payStartInput = document.createElement("input");
-    payStartInput.type = "date";
-    payStartInput.value = job.payPeriodStart || new Date().toISOString().slice(0, 10);
-    payStartInput.addEventListener("change", () => {
-      job.payPeriodStart = payStartInput.value;
-      saveState();
-      render();
-    });
-    payRow.appendChild(payStartInput);
-    jobBody.appendChild(payRow);
-
-    const lengthRow = document.createElement("label");
-    lengthRow.className = "inline";
-    lengthRow.textContent = "Length (days, e.g. 14)";
-    const lengthInput = document.createElement("input");
-    lengthInput.type = "number";
-    lengthInput.min = "1";
-    lengthInput.step = "1";
-    lengthInput.value = job.payPeriodLength ?? 14;
-    lengthInput.addEventListener("change", () => {
-      const next = Number.parseInt(lengthInput.value, 10);
-      job.payPeriodLength = Number.isFinite(next) && next > 0 ? next : 14;
-      saveState();
-      render();
-    });
-    lengthRow.appendChild(lengthInput);
-    jobBody.appendChild(lengthRow);
-
-    const periodRange = getPayPeriodRange(job);
-    const periodLabel = document.createElement("p");
-    periodLabel.className = "sub";
-    periodLabel.textContent = `Current pay period: ${formatDate(periodRange.start)} - ${formatDate(periodRange.end)}`;
-    jobBody.appendChild(periodLabel);
 
     punchBtn.addEventListener("click", () => togglePunch(job.id));
     exportBtn.addEventListener("click", () => exportJobWeek(job.id));
@@ -310,10 +301,11 @@ function removeJob(jobId) {
 }
 
 function buildJobExport(jobId) {
+  const week = getRange();
   const job = state.jobs.find((item) => item.id === jobId);
   if (!job) return "";
-  const week = getRange(job);
-  const headers = ["Job", "Range Start", "Range End", "Sessions", "Hours", "Rate", "Earnings"];
+
+  const headers = ["Job", "Week Start", "Week End", "Sessions", "Hours", "Rate", "Earnings"];
   const totals = calcJobTotals(job.id, week.start, week.end);
   const earnings = totals.totalHours * (job.rate || 0);
   const rows = [[
@@ -338,8 +330,8 @@ function exportJobWeek(jobId) {
   if (!job) return;
   const csv = buildJobExport(jobId);
   const safeName = job.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-  const range = getRange(job);
-  const rangeStamp = (job.rangeMode || "week") === "pay_period" ? formatISODate(range.start) : (weekStartInput.value || "week");
+  const range = getRange();
+  const rangeStamp = rangeModeSelect.value === "pay_period" ? formatISODate(range.start) : (weekStartInput.value || "week");
   const fileName = `timesheet_${safeName || "job"}_${rangeStamp}.csv`;
   downloadFile(csv, fileName);
 }
@@ -379,9 +371,9 @@ function getWeekRange() {
   return { start, end, label: "Week" };
 }
 
-function getPayPeriodRange(job) {
-  const lengthDays = Math.max(1, Number.parseInt(job.payPeriodLength, 10) || 14);
-  const baseStart = new Date(job.payPeriodStart);
+function getPayPeriodRange() {
+  const lengthDays = Math.max(1, Number.parseInt(state.payPeriodLength, 10) || 14);
+  const baseStart = new Date(state.payPeriodStart);
   baseStart.setHours(0, 0, 0, 0);
 
   const today = new Date();
@@ -395,12 +387,14 @@ function getPayPeriodRange(job) {
   end.setDate(start.getDate() + (lengthDays - 1));
   end.setHours(23, 59, 59, 999);
 
+  payRangeLabel.textContent = `Current period: ${formatDate(start)} - ${formatDate(end)}`;
+
   return { start, end, label: "Pay period" };
 }
 
-function getRange(job) {
-  if ((job.rangeMode || "week") === "pay_period") {
-    return getPayPeriodRange(job);
+function getRange() {
+  if (rangeModeSelect.value === "pay_period") {
+    return getPayPeriodRange();
   }
   return getWeekRange();
 }
@@ -450,7 +444,7 @@ function downloadFile(contents, name) {
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
-    return { jobs: [], sessions: [], weekStart: null };
+    return { jobs: [], sessions: [], weekStart: null, rangeMode: null, payPeriodStart: null, payPeriodLength: null };
   }
   try {
     const data = JSON.parse(raw);
@@ -458,15 +452,15 @@ function loadState() {
       jobs: (data.jobs || []).map((job) => ({
         ...job,
         rate: job.rate ?? 0,
-        rangeMode: job.rangeMode || "pay_period",
-        payPeriodStart: job.payPeriodStart || new Date().toISOString().slice(0, 10),
-        payPeriodLength: job.payPeriodLength || 14,
       })),
       sessions: data.sessions || [],
       weekStart: data.weekStart || null,
+      rangeMode: data.rangeMode || "week",
+      payPeriodStart: data.payPeriodStart || null,
+      payPeriodLength: data.payPeriodLength || 14,
     };
   } catch {
-    return { jobs: [], sessions: [], weekStart: null };
+    return { jobs: [], sessions: [], weekStart: null, rangeMode: null, payPeriodStart: null, payPeriodLength: null };
   }
 }
 
