@@ -29,7 +29,7 @@ const state = loadState();
 initWeekStart();
 render();
 registerServiceWorker();
-setInterval(renderRunningWidget, 30000);
+setInterval(renderRunningWidget, 1000);
 
 jobForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -424,11 +424,19 @@ function renderRunningWidget() {
     .map((job) => {
       const session = state.sessions.find((item) => item.id === job.activeSessionId);
       if (!session) return null;
-      const hours = durationHours(session.start, new Date().toISOString());
-      return `${job.name}: ${formatHours(hours)} hrs`;
+      const elapsed = elapsedDuration(session.start, new Date().toISOString());
+      return `${job.name}: ${elapsed}`;
     })
     .filter(Boolean);
 
   runningDetails.textContent = summaries.join(" • ");
   runningWidget.hidden = false;
+}
+
+function elapsedDuration(start, end) {
+  const totalSeconds = Math.max(0, Math.floor((new Date(end) - new Date(start)) / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
