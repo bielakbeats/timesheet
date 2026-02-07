@@ -91,6 +91,11 @@ body {
   font-size: 0.9rem;
 }
 
+.inline input,
+.inline select {
+  margin-left: 6px;
+}
+
 input[type="text"],
 input[type="date"] {
   padding: 12px 14px;
