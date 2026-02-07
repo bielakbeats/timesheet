@@ -1,0 +1,10 @@
+#!/bin/bash
+PROJECT_DIR="/Users/joebielak/Documents/New project"
+PORT=8080
+
+if ! lsof -i :$PORT >/dev/null 2>&1; then
+  (cd "$PROJECT_DIR" && nohup python3 -m http.server $PORT >/tmp/timesheet.log 2>&1 &)
+  sleep 0.5
+fi
+
+open "http://localhost:$PORT"
