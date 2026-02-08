@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
-  --bg: #f8f7f2;
-  --panel: #ffffff;
-  --ink: #0f172a;
-  --muted: #5f6b7a;
-  --accent: #d97706;
-  --accent-dark: #b45309;
-  --border: #e3e0d8;
-  --danger: #c2410c;
-  --radius: 16px;
-  font-family: "Fraunces", "Iowan Old Style", "Palatino", serif;
+  --bg: #0b1020;
+  --panel: #11162a;
+  --ink: #e6e9f5;
+  --muted: #9aa3b2;
+  --accent: #4f8cff;
+  --accent-dark: #2f6de6;
+  --border: rgba(255, 255, 255, 0.08);
+  --danger: #ff6b6b;
+  --radius: 18px;
+  font-family: "Space Grotesk", "SF Pro Display", "Segoe UI", sans-serif;
 }
 
 * {
@@ -18,14 +18,17 @@
 
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #fff6e8 0%, #f8f7f2 55%, #f3f1eb 100%);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(79, 140, 255, 0.35), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(34, 211, 238, 0.18), transparent 55%),
+    linear-gradient(180deg, #0b1020 0%, #090d1a 100%);
   color: var(--ink);
 }
 
 .app {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 32px 20px 80px;
+  padding: 36px 20px 90px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -39,13 +42,14 @@ body {
 
 .header h1 {
   margin: 8px 0;
-  font-size: clamp(1.8rem, 2vw + 1.2rem, 3rem);
+  font-size: clamp(2rem, 2vw + 1.2rem, 3.1rem);
+  letter-spacing: -0.02em;
 }
 
 .eyebrow {
   text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
   margin: 0;
   color: var(--muted);
 }
@@ -53,22 +57,23 @@ body {
 .sub {
   margin: 0;
   color: var(--muted);
-  font-family: "Inter", "Gill Sans", sans-serif;
   font-size: 1rem;
 }
 
 .panel {
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 92%, #0b1224);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+  padding: 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
 }
 
 .panel h2 {
   margin-top: 0;
   margin-bottom: 16px;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
 }
 
 .row {
@@ -86,7 +91,6 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: "Inter", "Gill Sans", sans-serif;
   color: var(--muted);
   font-size: 0.9rem;
 }
@@ -100,10 +104,11 @@ input[type="text"],
 input[type="date"] {
   padding: 12px 14px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 12px;
   min-width: 200px;
   font-size: 1rem;
-  font-family: "Inter", "Gill Sans", sans-serif;
+  background: #0f1528;
+  color: var(--ink);
 }
 
 input[type="number"],
@@ -114,36 +119,39 @@ select {
   border-radius: 12px;
   min-width: 200px;
   font-size: 1rem;
-  font-family: "Inter", "Gill Sans", sans-serif;
+  background: #0f1528;
+  color: var(--ink);
 }
 
 button {
   border: none;
-  background: var(--accent);
-  color: white;
+  background: linear-gradient(135deg, var(--accent), #22d3ee);
+  color: #051026;
   padding: 12px 18px;
   border-radius: 999px;
   cursor: pointer;
-  font-family: "Inter", "Gill Sans", sans-serif;
   font-weight: 600;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 30px rgba(79, 140, 255, 0.35);
 }
 
 button:hover {
   transform: translateY(-1px);
-  background: var(--accent-dark);
+  background: linear-gradient(135deg, var(--accent-dark), #0ea5e9);
 }
 
 button.ghost {
   background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  color: #8fb5ff;
+  border: 1px solid rgba(143, 181, 255, 0.4);
+  box-shadow: none;
 }
 
 button.danger {
   background: transparent;
-  border: 1px solid var(--danger);
-  color: var(--danger);
+  border: 1px solid rgba(255, 107, 107, 0.6);
+  color: #ffb0b0;
+  box-shadow: none;
 }
 
 button.small {
@@ -158,9 +166,9 @@ button.small {
 
 .job {
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 16px;
-  background: #fffaf2;
+  background: rgba(15, 20, 40, 0.8);
 }
 
 .job-head {
@@ -177,7 +185,6 @@ button.small {
 .job-meta {
   margin: 0;
   color: var(--muted);
-  font-family: "Inter", "Gill Sans", sans-serif;
 }
 
 .job-actions {
@@ -191,14 +198,13 @@ button.small {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-family: "Inter", "Gill Sans", sans-serif;
 }
 
 .totals {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  color: var(--ink);
+  color: #eaf0ff;
   font-weight: 600;
 }
 
@@ -214,8 +220,7 @@ button.small {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: white;
-  font-family: "Inter", "Gill Sans", sans-serif;
+  background: rgba(9, 12, 24, 0.6);
 }
 
 .session-title {
@@ -252,7 +257,6 @@ button.small {
   padding: 20px;
   display: grid;
   gap: 12px;
-  font-family: "Inter", "Gill Sans", sans-serif;
 }
 
 .dialog-body label {
@@ -275,11 +279,11 @@ button.small {
   bottom: 16px;
   transform: translateX(-50%);
   width: min(900px, calc(100% - 32px));
-  background: #0f172a;
-  color: #f8f7f2;
+  background: linear-gradient(135deg, rgba(79, 140, 255, 0.9), rgba(34, 211, 238, 0.85));
+  color: #04101f;
   border-radius: 18px;
   padding: 14px 18px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
   z-index: 20;
 }
 
@@ -296,7 +300,7 @@ button.small {
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 0.7rem;
-  color: #fcd34d;
+  color: #04101f;
 }
 
 .running-details {
