@@ -294,7 +294,7 @@ function buildJobExport(jobId) {
   const job = state.jobs.find((item) => item.id === jobId);
   if (!job) return "";
   const range = getPayPeriodRange(job);
-    const headers = ["Job", "Range Start", "Range End", "Sessions", "Hours", "Rate"];
+  const headers = ["Job", "Range Start", "Range End", "Sessions", "Hours"];
   const totals = calcJobTotals(job.id, range.start, range.end);
   const rows = [[
     job.name,
@@ -302,7 +302,6 @@ function buildJobExport(jobId) {
     formatDate(range.end),
     totals.sessions.toString(),
     totals.totalHours.toFixed(2),
-    (job.rate || 0).toFixed(2),
   ]];
 
   const lines = [headers, ...rows].map((row) =>
