@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
-  --bg: #f4f6fb;
-  --panel: #ffffff;
-  --ink: #0b1020;
-  --muted: #5b6372;
-  --accent: #2f6fed;
-  --accent-dark: #2557b8;
-  --border: rgba(15, 23, 42, 0.12);
-  --danger: #d64545;
-  --radius: 18px;
-  font-family: "Plus Jakarta Sans", "SF Pro Display", "Segoe UI", sans-serif;
+  --bg: #0e1116;
+  --panel: #121720;
+  --ink: #e5e7eb;
+  --muted: #9aa1ad;
+  --accent: #ffffff;
+  --accent-dark: #d6dbe6;
+  --border: rgba(255, 255, 255, 0.08);
+  --danger: #f87171;
+  --radius: 14px;
+  font-family: "IBM Plex Sans", "SF Pro Text", "Segoe UI", sans-serif;
 }
 
 * {
@@ -19,9 +19,8 @@
 body {
   margin: 0;
   background:
-    radial-gradient(900px 500px at 8% -10%, rgba(47, 111, 237, 0.18), transparent 60%),
-    radial-gradient(700px 400px at 90% 0%, rgba(23, 217, 199, 0.14), transparent 55%),
-    linear-gradient(180deg, #f4f6fb 0%, #edf1f8 100%);
+    radial-gradient(800px 400px at 0% -10%, rgba(255, 255, 255, 0.04), transparent 60%),
+    linear-gradient(180deg, #0e1116 0%, #0a0d12 100%);
   color: var(--ink);
 }
 
@@ -65,7 +64,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 22px;
-  box-shadow: 0 18px 45px rgba(11, 16, 32, 0.08);
+  box-shadow: none;
 }
 
 .panel h2 {
@@ -106,7 +105,7 @@ input[type="date"] {
   border-radius: 12px;
   min-width: 200px;
   font-size: 1rem;
-  background: #f9fbff;
+  background: #0f141c;
   color: var(--ink);
 }
 
@@ -118,38 +117,38 @@ select {
   border-radius: 12px;
   min-width: 200px;
   font-size: 1rem;
-  background: #f9fbff;
+  background: #0f141c;
   color: var(--ink);
 }
 
 button {
   border: none;
-  background: linear-gradient(135deg, var(--accent), #33c8bd);
-  color: white;
+  background: var(--accent);
+  color: #0b0f14;
   padding: 12px 18px;
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 12px 26px rgba(47, 111, 237, 0.25);
+  box-shadow: none;
 }
 
 button:hover {
   transform: translateY(-1px);
-  background: linear-gradient(135deg, var(--accent-dark), #22b8ad);
+  background: var(--accent-dark);
 }
 
 button.ghost {
   background: transparent;
-  color: var(--accent);
-  border: 1px solid rgba(47, 111, 237, 0.35);
+  color: var(--ink);
+  border: 1px solid var(--border);
   box-shadow: none;
 }
 
 button.danger {
   background: transparent;
-  border: 1px solid rgba(214, 69, 69, 0.45);
-  color: #a93030;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
   box-shadow: none;
 }
 
@@ -167,7 +166,7 @@ button.small {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
-  background: #f9fbff;
+  background: #0f141c;
 }
 
 .job-head {
@@ -219,7 +218,7 @@ button.small {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: #f9fbff;
+  background: #0f141c;
 }
 
 .session-title {
@@ -278,11 +277,11 @@ button.small {
   bottom: 16px;
   transform: translateX(-50%);
   width: min(900px, calc(100% - 32px));
-  background: linear-gradient(135deg, rgba(47, 111, 237, 0.95), rgba(51, 200, 189, 0.9));
-  color: #f3f8ff;
+  background: #f9fafb;
+  color: #0b0f14;
   border-radius: 18px;
   padding: 14px 18px;
-  box-shadow: 0 18px 40px rgba(47, 111, 237, 0.25);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
   z-index: 20;
 }
 
@@ -299,7 +298,7 @@ button.small {
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #111827;
 }
 
 .running-details {
