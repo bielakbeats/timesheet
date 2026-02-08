@@ -297,15 +297,14 @@ function buildJobExport(jobId) {
   const job = state.jobs.find((item) => item.id === jobId);
   if (!job) return "";
   const range = getPayPeriodRange(job);
-  const headers = ["Job", "Range Start", "Range End", "Sessions", "Hours"];
-  const totals = calcJobTotals(job.id, range.start, range.end);
-  const rows = [[
+  const headers = ["Job", "Session Start", "Session End", "Hours"];
+  const sessions = getSessionsForRange(job.id, range.start, range.end);
+  const rows = sessions.map((session) => [
     job.name,
-    formatDate(range.start),
-    formatDate(range.end),
-    totals.sessions.toString(),
-    totals.totalHours.toFixed(2),
-  ]];
+    formatDateTime(session.start),
+    formatDateTime(session.end),
+    durationHours(session.start, session.end).toFixed(2),
+  ]);
 
   const lines = [headers, ...rows].map((row) =>
     row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")
@@ -315,18 +314,22 @@ function buildJobExport(jobId) {
 }
 
 function calcJobTotals(jobId, start, end) {
-  const sessions = state.sessions.filter((session) => {
-    if (session.jobId !== jobId) return false;
-    if (!session.end) return false;
-    const startTime = new Date(session.start);
-    return startTime >= start && startTime <= end;
-  });
+  const sessions = getSessionsForRange(jobId, start, end);
 
   const totalHours = sessions.reduce((sum, session) => {
     return sum + durationHours(session.start, session.end);
   }, 0);
 
   return { totalHours, sessions: sessions.length };
+}
+
+function getSessionsForRange(jobId, start, end) {
+  return state.sessions.filter((session) => {
+    if (session.jobId !== jobId) return false;
+    if (!session.end) return false;
+    const startTime = new Date(session.start);
+    return startTime >= start && startTime <= end;
+  });
 }
 
 function durationHours(start, end) {
