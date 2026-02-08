@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
-  --bg: #0b1020;
-  --panel: #11162a;
-  --ink: #e6e9f5;
-  --muted: #9aa3b2;
-  --accent: #4f8cff;
-  --accent-dark: #2f6de6;
-  --border: rgba(255, 255, 255, 0.08);
-  --danger: #ff6b6b;
+  --bg: #f4f6fb;
+  --panel: #ffffff;
+  --ink: #0b1020;
+  --muted: #5b6372;
+  --accent: #2f6fed;
+  --accent-dark: #2557b8;
+  --border: rgba(15, 23, 42, 0.12);
+  --danger: #d64545;
   --radius: 18px;
-  font-family: "Space Grotesk", "SF Pro Display", "Segoe UI", sans-serif;
+  font-family: "Plus Jakarta Sans", "SF Pro Display", "Segoe UI", sans-serif;
 }
 
 * {
@@ -19,9 +19,9 @@
 body {
   margin: 0;
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(79, 140, 255, 0.35), transparent 60%),
-    radial-gradient(900px 500px at 90% 0%, rgba(34, 211, 238, 0.18), transparent 55%),
-    linear-gradient(180deg, #0b1020 0%, #090d1a 100%);
+    radial-gradient(900px 500px at 8% -10%, rgba(47, 111, 237, 0.18), transparent 60%),
+    radial-gradient(700px 400px at 90% 0%, rgba(23, 217, 199, 0.14), transparent 55%),
+    linear-gradient(180deg, #f4f6fb 0%, #edf1f8 100%);
   color: var(--ink);
 }
 
@@ -61,12 +61,11 @@ body {
 }
 
 .panel {
-  background: color-mix(in srgb, var(--panel) 92%, #0b1224);
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 22px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 18px 45px rgba(11, 16, 32, 0.08);
 }
 
 .panel h2 {
@@ -107,7 +106,7 @@ input[type="date"] {
   border-radius: 12px;
   min-width: 200px;
   font-size: 1rem;
-  background: #0f1528;
+  background: #f9fbff;
   color: var(--ink);
 }
 
@@ -119,38 +118,38 @@ select {
   border-radius: 12px;
   min-width: 200px;
   font-size: 1rem;
-  background: #0f1528;
+  background: #f9fbff;
   color: var(--ink);
 }
 
 button {
   border: none;
-  background: linear-gradient(135deg, var(--accent), #22d3ee);
-  color: #051026;
+  background: linear-gradient(135deg, var(--accent), #33c8bd);
+  color: white;
   padding: 12px 18px;
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 12px 30px rgba(79, 140, 255, 0.35);
+  box-shadow: 0 12px 26px rgba(47, 111, 237, 0.25);
 }
 
 button:hover {
   transform: translateY(-1px);
-  background: linear-gradient(135deg, var(--accent-dark), #0ea5e9);
+  background: linear-gradient(135deg, var(--accent-dark), #22b8ad);
 }
 
 button.ghost {
   background: transparent;
-  color: #8fb5ff;
-  border: 1px solid rgba(143, 181, 255, 0.4);
+  color: var(--accent);
+  border: 1px solid rgba(47, 111, 237, 0.35);
   box-shadow: none;
 }
 
 button.danger {
   background: transparent;
-  border: 1px solid rgba(255, 107, 107, 0.6);
-  color: #ffb0b0;
+  border: 1px solid rgba(214, 69, 69, 0.45);
+  color: #a93030;
   box-shadow: none;
 }
 
@@ -168,7 +167,7 @@ button.small {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
-  background: rgba(15, 20, 40, 0.8);
+  background: #f9fbff;
 }
 
 .job-head {
@@ -204,7 +203,7 @@ button.small {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  color: #eaf0ff;
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -220,7 +219,7 @@ button.small {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(9, 12, 24, 0.6);
+  background: #f9fbff;
 }
 
 .session-title {
@@ -246,7 +245,7 @@ button.small {
   padding: 0;
   max-width: 420px;
   width: calc(100% - 32px);
-  box-shadow: 0 40px 90px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 40px 90px rgba(15, 23, 42, 0.18);
 }
 
 .dialog::backdrop {
@@ -279,11 +278,11 @@ button.small {
   bottom: 16px;
   transform: translateX(-50%);
   width: min(900px, calc(100% - 32px));
-  background: linear-gradient(135deg, rgba(79, 140, 255, 0.9), rgba(34, 211, 238, 0.85));
-  color: #04101f;
+  background: linear-gradient(135deg, rgba(47, 111, 237, 0.95), rgba(51, 200, 189, 0.9));
+  color: #f3f8ff;
   border-radius: 18px;
   padding: 14px 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 18px 40px rgba(47, 111, 237, 0.25);
   z-index: 20;
 }
 
@@ -300,7 +299,7 @@ button.small {
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 0.7rem;
-  color: #04101f;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .running-details {
