@@ -418,9 +418,7 @@ function saveState(overrides = {}) {
 
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach((reg) => reg.unregister());
-    });
+    navigator.serviceWorker.register("sw.js").catch(() => {});
   }
 }
 
