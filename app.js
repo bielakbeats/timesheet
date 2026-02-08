@@ -270,6 +270,9 @@ function removeJob(jobId) {
     return;
   }
 
+  const ok = confirm(`Are you sure you want to remove "${job.name}"? This will delete all its sessions.`);
+  if (!ok) return;
+
   state.jobs = state.jobs.filter((item) => item.id !== jobId);
   state.sessions = state.sessions.filter((item) => item.jobId !== jobId);
   saveState();
@@ -291,9 +294,8 @@ function buildJobExport(jobId) {
   const job = state.jobs.find((item) => item.id === jobId);
   if (!job) return "";
   const range = getPayPeriodRange(job);
-  const headers = ["Job", "Range Start", "Range End", "Sessions", "Hours", "Rate", "Earnings"];
+    const headers = ["Job", "Range Start", "Range End", "Sessions", "Hours", "Rate"];
   const totals = calcJobTotals(job.id, range.start, range.end);
-  const earnings = totals.totalHours * (job.rate || 0);
   const rows = [[
     job.name,
     formatDate(range.start),
@@ -301,7 +303,6 @@ function buildJobExport(jobId) {
     totals.sessions.toString(),
     totals.totalHours.toFixed(2),
     (job.rate || 0).toFixed(2),
-    earnings.toFixed(2),
   ]];
 
   const lines = [headers, ...rows].map((row) =>
