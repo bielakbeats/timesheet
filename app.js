@@ -39,7 +39,7 @@ jobForm.addEventListener("submit", (event) => {
     rate: Number.isFinite(rate) ? rate : 0,
     activeSessionId: null,
     payPeriodStart: new Date().toISOString().slice(0, 10),
-    payPeriodLength: 14,
+    payPeriodEnd: addDaysISO(new Date().toISOString(), 13),
   });
   jobNameInput.value = "";
   jobRateInput.value = "";
@@ -163,38 +163,41 @@ function renderJobs() {
 
     const payRow = document.createElement("label");
     payRow.className = "inline";
-    payRow.textContent = "Pay period start (first day of a period)";
+    payRow.textContent = "Pay period start";
     const payStartInput = document.createElement("input");
     payStartInput.type = "date";
     payStartInput.value = job.payPeriodStart || new Date().toISOString().slice(0, 10);
     payStartInput.addEventListener("change", () => {
       job.payPeriodStart = payStartInput.value;
+      if (job.payPeriodEnd && job.payPeriodEnd < job.payPeriodStart) {
+        job.payPeriodEnd = job.payPeriodStart;
+      }
       saveState();
       render();
     });
     payRow.appendChild(payStartInput);
     jobBody.appendChild(payRow);
 
-    const lengthRow = document.createElement("label");
-    lengthRow.className = "inline";
-    lengthRow.textContent = "Length (days, e.g. 14)";
-    const lengthInput = document.createElement("input");
-    lengthInput.type = "number";
-    lengthInput.min = "1";
-    lengthInput.step = "1";
-    lengthInput.value = job.payPeriodLength ?? 14;
-    lengthInput.addEventListener("change", () => {
-      const next = Number.parseInt(lengthInput.value, 10);
-      job.payPeriodLength = Number.isFinite(next) && next > 0 ? next : 14;
+    const endRow = document.createElement("label");
+    endRow.className = "inline";
+    endRow.textContent = "Pay period end";
+    const payEndInput = document.createElement("input");
+    payEndInput.type = "date";
+    payEndInput.value = job.payPeriodEnd || job.payPeriodStart || new Date().toISOString().slice(0, 10);
+    payEndInput.addEventListener("change", () => {
+      job.payPeriodEnd = payEndInput.value;
+      if (job.payPeriodEnd < job.payPeriodStart) {
+        job.payPeriodStart = job.payPeriodEnd;
+      }
       saveState();
       render();
     });
-    lengthRow.appendChild(lengthInput);
-    jobBody.appendChild(lengthRow);
+    endRow.appendChild(payEndInput);
+    jobBody.appendChild(endRow);
 
     const periodLabel = document.createElement("p");
     periodLabel.className = "sub";
-    periodLabel.textContent = `Current pay period: ${formatDate(range.start)} - ${formatDate(range.end)}`;
+    periodLabel.textContent = `Selected period: ${formatDate(range.start)} - ${formatDate(range.end)}`;
     jobBody.appendChild(periodLabel);
 
     punchBtn.addEventListener("click", () => togglePunch(job.id));
@@ -339,21 +342,10 @@ function formatMoney(value) {
 }
 
 function getPayPeriodRange(job) {
-  const lengthDays = Math.max(1, Number.parseInt(job.payPeriodLength, 10) || 14);
-  const baseStart = new Date(job.payPeriodStart);
-  baseStart.setHours(0, 0, 0, 0);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const diffDays = Math.floor((today - baseStart) / 86400000);
-  const periodsPassed = diffDays >= 0 ? Math.floor(diffDays / lengthDays) : 0;
-  const start = new Date(baseStart);
-  start.setDate(baseStart.getDate() + periodsPassed * lengthDays);
-  const end = new Date(start);
-  end.setDate(start.getDate() + (lengthDays - 1));
+  const start = new Date(job.payPeriodStart || new Date().toISOString().slice(0, 10));
+  const end = new Date(job.payPeriodEnd || job.payPeriodStart || new Date().toISOString().slice(0, 10));
+  start.setHours(0, 0, 0, 0);
   end.setHours(23, 59, 59, 999);
-
   return { start, end };
 }
 
@@ -402,7 +394,7 @@ function loadState() {
         ...job,
         rate: job.rate ?? 0,
         payPeriodStart: job.payPeriodStart || new Date().toISOString().slice(0, 10),
-        payPeriodLength: job.payPeriodLength || 14,
+        payPeriodEnd: job.payPeriodEnd || inferEndFromLegacy(job),
       })),
       sessions: data.sessions || [],
     };
@@ -474,4 +466,17 @@ function elapsedDuration(start, end) {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function inferEndFromLegacy(job) {
+  if (job.payPeriodEnd) return job.payPeriodEnd;
+  const start = job.payPeriodStart || new Date().toISOString().slice(0, 10);
+  const length = Math.max(1, Number.parseInt(job.payPeriodLength, 10) || 14);
+  return addDaysISO(start, length - 1);
+}
+
+function addDaysISO(isoDate, days) {
+  const date = new Date(isoDate);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
 }
